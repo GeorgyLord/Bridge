@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "103283391377",
+    "project_id": "bridge-57038",
+    "storage_bucket": "bridge-57038.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103283391377:android:701349dacddb721cf0f830",
+        "android_client_info": {
+          "package_name": "com.example.bridge"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdQUNI8xPzXI9YrTbmClPidN614ajIJT4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
