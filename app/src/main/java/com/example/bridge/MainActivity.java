@@ -1,8 +1,14 @@
 package com.example.bridge;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.Pair;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -35,17 +41,46 @@ public class MainActivity extends AppCompatActivity {
     DocumentReference newDocRef;
     String docId;
     Person person;
+
+    private Handler handler = new Handler();
+    private Runnable runnable;
+    public View v;
+    //Map<String, String> mes = new HashMap<>();
+    List<String> mes;
+    private Integer count_mes = 0;
+
+    public LinearLayout messagesContainer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        messagesContainer = findViewById(R.id.messagesContainer);
+        mes = new ArrayList<>();
+        // Определяем задачу, которая будет выполняться каждые 5 секунд
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                // Вызываем вашу функцию
+                yourFunction();
+
+                // Повторяем задачу через 5 секунд
+                handler.postDelayed(this, 5000); // 5000 миллисекунд = 5 секунд
+            }
+        };
+
+        // Запускаем задачу
+        handler.post(runnable);
+
+        /*
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        reg();
+        */
+        //reg();
         //response();
         /*
         db.collection(coolectionPath)
@@ -119,9 +154,47 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("get failed with " + e);
         });*/
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Удаляем задачу при уничтожении активности, чтобы избежать утечек памяти
+        handler.removeCallbacks(runnable);
+    }
+
+    private void yourFunction() {
+        //System.out.println(mes.size());
+        mes = new ArrayList<>();
+        //System.out.println(mes.size());
+        response();
+    }
+    public void onSendButtonClick(View view) {
+        v = view;
+        // Получаем текст из поля ввода
+        EditText messageInput = findViewById(R.id.messageInput);
+        String messageText = messageInput.getText().toString();
+
+        // Проверяем, что сообщение не пустое
+        if (!messageText.isEmpty()) {
+            // Добавляем сообщение в область чата
+            TextView messageView = new TextView(this);
+            messageView.setText(messageText);
+            messageView.setPadding(16, 8, 16, 8);
+            messagesContainer.addView(messageView);
+            Map<String, Object> data = new HashMap<>();
+            data.put("mes", messageText);
+            newDocRef = db.collection(coolectionPath).document();
+            docId = newDocRef.getId();
+            newDocRef.set(data);
+            // Очищаем поле ввода
+            messageInput.setText("");
+        } else {
+            Toast.makeText(this, "Введите сообщение!", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void response(){
         //list = new ArrayList<>();
+        //mes.clear();
         db.collection(coolectionPath)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -134,14 +207,36 @@ public class MainActivity extends AppCompatActivity {
                                 //hm.put("banana", "20");
                                 //list.add(new Pair<>(document.getId(), hm));
                                 //Log.d("TAG123", ""+list.size());
-                                Log.d("TAG123", document.getId() + " => " + document.getData());
-                                //Log.d("TAG123", ""+document.getData().getClass());
+                                /*
+                                String text = document.getData().toString();
+                                messageView.setText(text);
+                                messageView.setPadding(16, 8, 16, 8); // Отступы внутри TextView
+                                messagesContainer.addView(messageView);
+                                */
+                                //mes.put(count_mes+": ", document.getData().toString());
+                                String s = document.getData().toString().substring(5, document.getData().toString().length()-1);
+                                mes.add(s);
+
+                                //System.out.println(mes.size());
+                                //Log.d("System.out", document.getId() + " => " + document.getData());
+                                //Log.d("System.out", ""+document.getData().getClass());
                             }
                         } else {
-                            Log.d("TAG123", "Error getting documents: ", task.getException());
+                            Log.d("System.out", "Error getting documents: ", task.getException());
                         }
+                        messagesContainer.removeAllViews();
+                        draw();
                     }
                 });
+    }
+    private void draw(){
+        for (int i = 0; i < mes.size(); i++) {
+            String item = mes.get(i);
+            TextView messageView = new TextView(this);
+            messageView.setText(item);
+            messageView.setPadding(16, 8, 16, 8); // Отступы внутри TextView
+            messagesContainer.addView(messageView);
+        }
     }
     private void reg(){
         person = new Person("Bob", 18);
@@ -150,4 +245,8 @@ public class MainActivity extends AppCompatActivity {
         newDocRef.set(person);
         System.out.println(docId);
     }
+/*
+    private void sent_message(View view){
+        System.out.println("1");
+    }*/
 }
